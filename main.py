@@ -1,6 +1,7 @@
 import discord
 import os
 import gspread
+from webapp import keep_alive
 
 drive_key = os.environ['GDRIVE_KEY']
 template_key = os.environ['GTEMPLATE_KEY']
@@ -29,13 +30,18 @@ async def on_message(message):
     if message.author == client.user:
         return
 
+    if message.content.startswith('$help'):
+        await message.channel.send('Welcome to Puzzle Bot!\nType $create <TITLE> to create a new spreadsheet.')
+
     if message.content.startswith('$create'):
+        await message.channel.send('Creating New Spreadsheet...')
         name = message.content.replace('$create ', '')
         gc.copy(template_key, title=name, copy_permissions=True)
         ss = gc.open(name)
         link = 'https://docs.google.com/spreadsheets/d/' + ss.id
         await message.channel.send('New Spreadsheet Created Here: ' + link)
 
+keep_alive()
 client.run(os.getenv('DISCORD_KEY'))
 
 
