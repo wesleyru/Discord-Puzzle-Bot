@@ -1,6 +1,5 @@
 .env
 puzzle-bot.json
-config.py
 README.md
 __pycache__
 poetry.lock
