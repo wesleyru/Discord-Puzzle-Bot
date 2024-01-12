@@ -38,6 +38,7 @@ async def on_message(message):
   # print(f"message.content={message.content}")
   if message.author == client.user:
     return
+    
   # Status Command
   if message.content.startswith('$status'):
     await message.channel.send(
