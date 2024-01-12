@@ -4,14 +4,17 @@ import datetime
 
 app = Flask(__name__)
 
+
 @app.route('/')
 def main_func():
-    content = '<p>' + 'Online @ ' + str(datetime.datetime.now()) + '</p>'
-    return content
+  content = '<p>' + 'Online @ ' + str(datetime.datetime.now()) + '</p>'
+  return content
+
 
 def run():
-    app.run(host='0.0.0.0', port=8080)
+  app.run(host='0.0.0.0', port=8080)
+
 
 def keep_alive():
-    server = Thread(target=run)
-    server.start()
+  server = Thread(target=run)
+  server.start()
