@@ -4,3 +4,8 @@ README.md
 __pycache__
 poetry.lock
 pyproject.toml
+.breakpoints
+.replit
+.replit.backup
+pyproject.toml.backup
+replit.nix
