@@ -3,6 +3,7 @@ from discord import Guild
 import os
 import gspread
 from webapp import keep_alive
+from replit import db
 
 # Google API Crendential Setup
 drive_key = os.environ['GDRIVE_KEY']
@@ -38,7 +39,7 @@ async def on_message(message):
   # print(f"message.content={message.content}")
   if message.author == client.user:
     return
-    
+
   # Status Command
   if message.content.startswith('$status'):
     await message.channel.send(
@@ -66,6 +67,13 @@ async def on_message(message):
     # Update Worksheet
     ws = ss.get_worksheet(0)
     ws.update('A1', name)
+    # Update Database
+    
+                     ,['MIT Mystery Hunt 2025','1','Test','TestPuzzle',]
+
+# # Solved Command
+# if message.content.startswith('$solved'):
+#
 
 keep_alive()
 client.run(os.environ['DISCORD_KEY'])
