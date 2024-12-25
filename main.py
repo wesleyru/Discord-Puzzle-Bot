@@ -1,13 +1,14 @@
-import discord
-from discord import Guild
 import os
+import discord
 import gspread
+from datetime import datetime
 from webapp import keep_alive
-from replit import db
 
 # Google API Crendential Setup
 drive_key = os.environ['GDRIVE_KEY']
 template_key = os.environ['GTEMPLATE_KEY']
+dashboard_key = os.environ['GDASHBOARD_KEY']
+
 credentials = {
     'type': os.environ['type'],
     'project_id': os.environ['project_id'],
@@ -66,14 +67,58 @@ async def on_message(message):
     await channel.send('New Spreadsheet Created Here: ' + link)
     # Update Worksheet
     ws = ss.get_worksheet(0)
-    ws.update('A1', name)
-    # Update Database
-    
-                     ,['MIT Mystery Hunt 2025','1','Test','TestPuzzle',]
+    ws.update(range_name='A1', values=name)
+    ws.client.session.close()
 
-# # Solved Command
-# if message.content.startswith('$solved'):
-#
+    # Update Dashboard
+    ss = gc.open_by_key(dashboard_key)
+    ws = ss.worksheet('Puzzle Dashboard')
+    next_empty_line = 12
+    while ws.acell('A' + str(next_empty_line)).value is not None:
+      next_empty_line += 1
+    ws.update_acell('A' + str(next_empty_line), cat.name)
+    ws.format('A' + str(next_empty_line),
+              {'textFormat': {
+                  'bold': False,
+                  'fontSize': 10
+              }})
+    ws.update_acell('B' + str(next_empty_line), name.upper())
+    ws.update_acell('C' + str(next_empty_line),
+                    '=hyperlink("' + link + '","Link")')
+    ws.update_acell('D' + str(next_empty_line), 'Not Started')
+    ws.client.session.close()
+    await channel.send('Puzzle Dashboard Updated!')
+
+  # Solved Command
+  if message.content.startswith('$solved'):
+    channel = message.channel
+    answer = message.content.replace('$solved ', '')
+
+    #Update Puzzle Dashboard
+    ss = gc.open_by_key(dashboard_key)
+    ws = ss.worksheet('Puzzle Dashboard')
+    channel_line = 12
+    while ws.acell('B' + str(channel_line)).value is not None and ws.acell(
+        'B' + str(channel_line)).value != channel.name.upper():
+      channel_line += 1
+    if ws.acell('B' + str(channel_line)).value is None:
+      ws.client.session.close()
+      await channel.send(
+          'Puzzle Dashboard Not Updated. Puzzle Name Could not be Found.')
+    elif ws.acell('B' + str(channel_line)).value == channel.name.upper():
+      ws.update_acell('D' + str(channel_line), 'Solved')
+      ws.update_acell('I' + str(channel_line), answer.upper())
+      ws.update_acell('J' + str(channel_line),
+                      str(datetime.now().strftime('%a %I:%M%p')).upper())
+      ws.client.session.close()
+      await channel.send('Puzzle Dashboard Updated!')
+    else:
+      await channel.send(
+          'Puzzle Dashboard Not Updated. Puzzle Name Could not be Found.')
+    solved_cat = client.get_channel(
+        int(os.environ['DISCORD_SOLVED_CATEGORY_ID']))
+    await channel.edit(category=solved_cat)
+
 
 keep_alive()
 client.run(os.environ['DISCORD_KEY'])
