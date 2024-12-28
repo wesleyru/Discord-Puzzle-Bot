@@ -74,7 +74,8 @@ async def on_message(message):
     ss = gc.open_by_key(dashboard_key)
     ws = ss.worksheet('Puzzle Dashboard')
     next_empty_line = 12
-    while ws.acell('A' + str(next_empty_line)).value is not None:
+    while ws.acell('A' + str(next_empty_line)).value is not None or ws.acell(
+      'A' + str(next_empty_line+1)).value is not None:
       next_empty_line += 1
     ws.update_acell('A' + str(next_empty_line), cat.name)
     ws.format('A' + str(next_empty_line),
@@ -98,8 +99,9 @@ async def on_message(message):
     ss = gc.open_by_key(dashboard_key)
     ws = ss.worksheet('Puzzle Dashboard')
     channel_line = 12
-    while ws.acell('B' + str(channel_line)).value is not None and ws.acell(
-        'B' + str(channel_line)).value != channel.name.upper():
+    while (ws.acell('B' + str(channel_line)).value is not None or ws.acell(
+      'B' + str(channel_line+1)).value is not None) and ws.acell(
+      'B' + str(channel_line)).value != channel.name.upper():
       channel_line += 1
     if ws.acell('B' + str(channel_line)).value is None:
       ws.client.session.close()
