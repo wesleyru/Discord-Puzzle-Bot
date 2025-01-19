@@ -2,12 +2,14 @@ import os
 import discord
 import gspread
 from datetime import datetime
+from pytz import timezone
 from webapp import keep_alive
 
 # Google API Crendential Setup
 drive_key = os.environ['GDRIVE_KEY']
 template_key = os.environ['GTEMPLATE_KEY']
 dashboard_key = os.environ['GDASHBOARD_KEY']
+solved_folder_key = os.environ['GSOLVED_KEY']
 
 credentials = {
     'type': os.environ['type'],
@@ -61,7 +63,8 @@ async def on_message(message):
         'Creating New Channel, Spreadsheet Link to Follow...')
     # Create New Discord Channel
     cat = client.get_channel(int(os.environ['DISCORD_CATEGORY_ID']))
-    channel = await message.guild.create_text_channel(name, category=cat)
+    channel = await message.guild.create_text_channel(name.upper(),
+                                                      category=cat)
     # Duplicate Gsheet Template
     gc.copy(template_key, title=name, copy_permissions=True)
     ss = gc.open(name)
@@ -97,24 +100,28 @@ async def on_message(message):
     channel = message.channel
     answer = message.content.replace('$solved ', '')
 
-    #Update Puzzle Dashboard
+    # Update Puzzle Dashboard
     ss = gc.open_by_key(dashboard_key)
     ws = ss.worksheet('Puzzle Dashboard')
     channel_line = 12
     while (ws.acell('B' + str(channel_line)).value is not None
-           or ws.acell('B' + str(channel_line + 1)).value is not None
-           ) and ws.acell('B' +
-                          str(channel_line)).value != channel.name.upper():
+           or ws.acell('B' + str(channel_line + 1)).value
+           is not None) and ws.acell(
+               'B' + str(channel_line)).value != channel.name.upper().replace(
+                   "-", " "):
       channel_line += 1
     if ws.acell('B' + str(channel_line)).value is None:
       ws.client.session.close()
       await channel.send(
           'Puzzle Dashboard Not Updated. Puzzle Name Could not be Found.')
-    elif ws.acell('B' + str(channel_line)).value == channel.name.upper():
+    elif ws.acell('B' +
+                  str(channel_line)).value == channel.name.upper().replace(
+                      "-", " "):
       ws.update_acell('D' + str(channel_line), 'Solved')
       ws.update_acell('I' + str(channel_line), answer.upper())
-      ws.update_acell('J' + str(channel_line),
-                      str(datetime.now().strftime('%a %I:%M%p')).upper())
+      ws.update_acell(
+          'J' + str(channel_line),
+          str(datetime.now(timezone('EST')).strftime('%a %I:%M%p')).upper())
       ws.client.session.close()
       await channel.send('Puzzle Dashboard Updated!')
     else:
